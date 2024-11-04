@@ -1,32 +1,51 @@
 const express = require("express");
-const path = require("path");
 const app = express();
+app.use(express.json());
+
 const PORT = 3000;
 
-const users = [
-  { id: 1, ime: "Gabriel", prezime: "Nadal" },
-  { id: 2, ime: "Pero", prezime: "Peric" },
-  { id: 3, ime: "Prof", prezime: "Blaskovic" },
+const pizze = [
+  { id: 1, naziv: "Margherita", cijena: 6.5 },
+  { id: 2, naziv: "Capricciosa", cijena: 8.0 },
+  { id: 3, naziv: "Quattro formaggi", cijena: 10.0 },
+  { id: 4, naziv: "Šunka sir", cijena: 7.0 },
+  { id: 5, naziv: "Vegetariana", cijena: 9.0 },
 ];
 
-app.get("/", (req, res) => {
-  res.sendFile(__dirname + "/public/index.html");
+// GET endpoint za dohvat svih pizza
+app.get("/pizze", (req, res) => {
+  res.json(pizze); // vraća sve pizze kao JSON
 });
 
-/* ili
-app.get("/", (req, res) => {
-  res.sendFile(path.join(__dirname, "public", "index.html")); // Koristimo path.join za spajanje putanje
-});
-*/
-
-app.get("/about", (req, res) => {
-  res.sendFile(__dirname + "/public/about.html");
-});
-
-app.get("/users", (req, res) => {
-  res.json(users);
+// GET endpoint za dohvat pizze po ID-u
+app.get("/pizze/:id", (req, res) => {
+  const id_pizza = req.params.id; // dohvaćamo id parametar iz URL-a
+  const pizza = pizze.find((pizza) => pizza.id == id_pizza);
+  if (pizza) {
+    res.json(pizza);
+  } else {
+    res.json({ message: "Pizza s traženim ID-em ne postoji." });
+  }
 });
 
+// POST endpoint za primanje narudžbi
+app.post("/naruci", (req, res) => {
+  const narudzba = req.body;
+  const kljucevi = Object.keys(narudzba);
+  if (!(kljucevi.includes("pizza") && kljucevi.includes("velicina"))) {
+    res.send("Niste poslali sve potrebne podatke za narudžbu!");
+    return;
+  }
+  res.send(
+    `Vaša narudžba za ${narudzba.pizza} (${narudzba.velicina}) je uspješno zaprimljena!`
+  );
+});
+
+app.use((req, res) => {
+  res.status(404).send("Ne radi!");
+});
+
+// Pokretanje servera
 app.listen(PORT, (error) => {
   if (error) {
     console.error(`Greška prilikom pokretanja poslužitelja: ${error.message}`);
